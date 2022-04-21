@@ -9,7 +9,7 @@ class Base {
 	public text_part = '';
 	public html_part = '';
 	public url?: string;
-	public attachments: Attachment[] = [];
+	public attachments: string[] = [];
 
 	setSubject(subject: string): BEReturnType {
 		this.subject = subject;
@@ -37,8 +37,9 @@ class Base {
 		return this;
 	}
 
-	addAttachment(file: Attachment): BEReturnType {
-		this.attachments.push(file);
+	addAttachment(file: GoogleAppsScript.Base.Blob): BEReturnType {
+		const boundary = this.createBoundary(file, 'file');
+		this.attachments.push(boundary);
 		return this;
 	}
 
@@ -71,12 +72,25 @@ class Base {
 	}
 
 	sendAttachment(url: string, params: GoogleAppsScript.URL_Fetch.URLFetchRequestOptions): GoogleAppsScript.URL_Fetch.HTTPResponse {
-		const data: GoogleAppsScript.URL_Fetch.Payload = params.payload!
-		const payload = {
-			file: this.attachments,
-			data: Utilities.newBlob(JSON.stringify(data), 'application/json', 'data'),
-		};
+		const json: GoogleAppsScript.URL_Fetch.Payload = params.payload!
+		const data = Utilities.newBlob(JSON.stringify(json), 'application/json', 'data')
+		const payload = `${this.attachments.join("\r\n")}\r\n${this.createBoundary(data, 'data', true)}`
 		return UrlFetchApp.fetch(url, {...params, ...{payload}});
+	}
+
+	getBoundary(): string {
+		return `BlastengineGAS`;
+	}
+
+	createBoundary(file: GoogleAppsScript.Base.Blob, name: string, last: boolean = false): string {
+		const boundary = `----${this.getBoundary()}${last ? '--' : ''}`;
+		const ary = [];
+		ary.push(`Content-Disposition: form-data; name="${name}"; filename="${file.getName()}"`);
+		ary.push(`Content-Type: ${file.getContentType() || 'application/octet-stream'}; charset=UTF-8`);
+		ary.push(``);
+		ary.push(file.getBytes());
+		ary.push(boundary)
+		return ary.join("\r\n");
 	}
 }
 
