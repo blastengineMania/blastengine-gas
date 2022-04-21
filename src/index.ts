@@ -14,9 +14,11 @@ class BlastEngine {
 		this.generateToken();
 		Delivery.client = this;
 		Base.client = this;
+		Transaction.client = this;
+		Bulk.client = this;
 	}
 
-	generateToken() {
+	generateToken(): string {
 		if (!this.userId) throw 'There is no userId';
 		if (!this.apiKey) throw 'There is no apiKey';
 		const str = `${this.userId}${this.apiKey}`;
@@ -28,6 +30,7 @@ class BlastEngine {
 			})
 			.join("");
 		this.token = Utilities.base64Encode(hashHex);
+		return this.token;
 	}
 }
 

@@ -1,7 +1,6 @@
 import { BlastEngine, Transaction, Bulk } from './index';
-
-function init(userId: string, apiKey: string) {
-	new BlastEngine(userId, apiKey);
+function init(userId: string, apiKey: string): BlastEngine {
+	return new BlastEngine(userId, apiKey);
 }
 
 function transaction(): Transaction {
