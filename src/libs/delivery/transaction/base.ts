@@ -74,21 +74,28 @@ class Base {
 	sendAttachment(url: string, params: GoogleAppsScript.URL_Fetch.URLFetchRequestOptions): GoogleAppsScript.URL_Fetch.HTTPResponse {
 		const json: GoogleAppsScript.URL_Fetch.Payload = params.payload!
 		const data = Utilities.newBlob(JSON.stringify(json), 'application/json', 'data')
-		const payload = `${this.attachments.join("\r\n")}\r\n${this.createBoundary(data, 'data', true)}`
+		const payload = `--${this.getBoundary()}\r\n${this.attachments.join("\r\n")}\r\n${this.createBoundary(data, 'data', true)}`
+		params.headers!['Content-Type'] = `multipart/form-data; boundary=${this.getBoundary()}`;
+		console.log(payload);
 		return UrlFetchApp.fetch(url, {...params, ...{payload}});
 	}
 
 	getBoundary(): string {
-		return `BlastengineGAS`;
+		return `--BlastengineGAS`;
 	}
 
 	createBoundary(file: GoogleAppsScript.Base.Blob, name: string, last: boolean = false): string {
-		const boundary = `----${this.getBoundary()}${last ? '--' : ''}`;
+		const boundary = `--${this.getBoundary()}${last ? '--' : ''}`;
+		const filename = "=?UTF-8?B?" + Utilities.base64Encode(file.getName(), Utilities.Charset.UTF_8) + "?=";
 		const ary = [];
-		ary.push(`Content-Disposition: form-data; name="${name}"; filename="${file.getName()}"`);
+		if (last) {
+			ary.push(`Content-Disposition: form-data; name="${name}"`);
+		} else {
+			ary.push(`Content-Disposition: form-data; name="${name}"; filename="${filename}"`);
+		}
 		ary.push(`Content-Type: ${file.getContentType() || 'application/octet-stream'}; charset=UTF-8`);
 		ary.push(``);
-		ary.push(file.getBytes());
+		ary.push(file.getDataAsString());
 		ary.push(boundary)
 		return ary.join("\r\n");
 	}

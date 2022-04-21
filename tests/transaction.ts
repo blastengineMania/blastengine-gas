@@ -1,5 +1,6 @@
 import {BlastEngine, Transaction}  from '../src/index';
-new BlastEngine('YOUR_USER_NAME', 'YOUR_API_KEY');
+const up = PropertiesService.getUserProperties();
+new BlastEngine(up.getProperty('API_USER')!, up.getProperty('API_KEY')!);
 
 function _transaction_test_() {
 	const transaction = new Transaction;
@@ -12,12 +13,13 @@ function _transaction_test_() {
 }
 
 function _transaction_attachment_test() {
+	const response = UrlFetchApp.fetch('https://www.moongift.jp/logo.jpg');
 	const transaction = new Transaction;
 	transaction.fromEmail = 'info@opendata.jp';
 	transaction.setTo('atsushi@moongift.jp');
 	transaction.subject = 'テストメール';
 	transaction.setText('テキスト本文');
-	transaction.addAttachment(Utilities.newBlob('Hire me!', 'text/plain', 'resume1.txt'));
+	transaction.addAttachment(response.getBlob());
 	transaction.addAttachment(Utilities.newBlob('Hire me, again!', 'text/plain', 'resume2.txt'));
 	const res = transaction.send();
 	console.log(res);
