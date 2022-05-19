@@ -6,21 +6,21 @@ export default class Bulk extends Base {
 	to: BulkUpdateTo[] = [];
 	date?: Date;
 
-	async register(): Promise<SuccessFormat> {
+	register(): SuccessFormat {
 		const url = 'https://app.engn.jp/api/v1/deliveries/bulk/begin';
-		const res = await this.req('post', url, this.saveParams());
+		const res = this.req('post', url, this.saveParams());
 		this.delivery_id = res.delivery_id;
 		return res;
 	}
 
-	async update(): Promise<SuccessFormat> {
+	update(): SuccessFormat {
 		if (!this.delivery_id) throw 'Delivery id is not found.';
 		const url = `https://app.engn.jp/api/v1/deliveries/bulk/update/${this.delivery_id!}`;
-		const res = await this.req('put', url, this.updateParams());
+		const res = this.req('put', url, this.updateParams());
 		return res;
 	}
 
-	async send(date?: Date): Promise<SuccessFormat> {
+	send(date?: Date): SuccessFormat {
 		if (!date) {
 			date = new Date;
 			date.setMinutes(date.getMinutes() + 1);
@@ -28,24 +28,26 @@ export default class Bulk extends Base {
 		this.date = date;
 		if (!this.delivery_id) throw 'Delivery id is not found.';
 		const url = `https://app.engn.jp/api/v1/deliveries/bulk/commit/${this.delivery_id!}`;
-		const res = await this.req('patch', url, this.commitParams());
+		const res = this.req('patch', url, this.commitParams());
 		return res;
 	}
 
-	async delete(): Promise<SuccessFormat> {
+	delete(): SuccessFormat {
 		if (!this.delivery_id) throw 'Delivery id is not found.';
 		const url = `https://app.engn.jp/api/v1/deliveries/${this.delivery_id!}`;
-		const res = await this.req('delete', url);
+		const res = this.req('delete', url);
 		return res;
 	}
 
-	setTo(email: string, insertCode?: InsertCode[] | InsertCode): Bulk {
+	setTo(email: string, insertCode?: {[key: string]: string}): Bulk {
 		const params: BulkUpdateTo = { email };
 		if (insertCode) {
-			if (Array.isArray(insertCode)) {
-				params.insert_code = insertCode;
-			} else {
-				params.insert_code = [insertCode];
+			params.insert_code = [];
+			for (const key in insertCode){
+				params.insert_code?.push({
+					key: `__${key}__`,
+					value: insertCode[key],
+				})
 			}
 		}
 		this.to.push(params);
@@ -79,8 +81,9 @@ export default class Bulk extends Base {
 	}
 
 	commitParams(): RequestParamsBulkCommit {
+		const reservation_time = Utilities.formatDate(this.date!, 'JST', "yyyy-MM-dd'T'HH:mm:ss'+09:00'");
 		return {
-			reservation_time: Utilities.formatDate(this.date!, 'JST', '%FT%T%z')
+			reservation_time,
 		}
 	}
 }
