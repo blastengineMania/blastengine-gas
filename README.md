@@ -50,6 +50,47 @@ console.log(res);
 // { delivery_id: 189 }
 ```
 
+### Bluk email
+
+```js
+const bulk = Blastengine.bulk();
+```
+
+#### Save email
+
+```js
+bulk.fromEmail = 'info@example.com';
+bulk.subject = 'Test subject';
+bulk.setText('Text body with  __name__');
+const res =  bulk.register();
+console.log(res);
+// { delivery_id: 189 }
+```
+
+#### Add to
+
+```js
+bulk.setTo('user1@example.jp', {
+	'name': 'User 1',
+});
+bulk.setTo('user2@example.jp', {
+	'name': 'User 2',
+});
+bulk.update();
+```
+
+#### Send email
+
+```js
+bulk.send();
+```
+
+#### Delete bulk email
+
+```js
+bulk.delete();
+```
+
 ## License
 
 MIT
