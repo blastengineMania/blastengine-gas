@@ -1,7 +1,8 @@
-import Delivery from './libs/delivery/';
-import Transaction from './libs/delivery/transaction';
-import Bulk from './libs/delivery/transaction/bulk';
-import Base from './libs/delivery/transaction/base';
+import Base from './libs/base';
+import Transaction from './libs/transaction';
+import Bulk from './libs/bulk';
+import Mail from './libs/mail';
+import Log from './libs/log';
 
 class BlastEngine {
 	userId?: string;
@@ -12,10 +13,7 @@ class BlastEngine {
 		this.userId = userId;
 		this.apiKey = apiKey;
 		this.generateToken();
-		Delivery.client = this;
 		Base.client = this;
-		Transaction.client = this;
-		Bulk.client = this;
 	}
 
 	generateToken(): string {
@@ -34,4 +32,4 @@ class BlastEngine {
 	}
 }
 
-export { BlastEngine, Bulk, Transaction };
+export { BlastEngine, Bulk, Transaction, Mail, Log };
