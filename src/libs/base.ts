@@ -13,6 +13,8 @@ class Base {
 	public url?: string;
 	public attachments: number[][] = [];
 	public file?: number[];
+	public unsubscribe_url?: string;
+	public unsubscribe_email?: string;
 
 	public status?: string;
 	public delivery_time?: Date;
@@ -89,6 +91,12 @@ class Base {
 
 	setHtml(html: string): BEReturnType {
 		this.html_part = html;
+		return this;
+	}
+
+	setUnsubscribe({url, email}: {url?: string, email?: string}): BEReturnType {
+		if (url) this.unsubscribe_url = url;
+		if (email) this.unsubscribe_email = email;
 		return this;
 	}
 

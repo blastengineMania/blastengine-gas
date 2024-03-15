@@ -5,12 +5,21 @@ export default class Transaction extends Base {
 	public to = '';
 	public cc: string[] = [];
 	public bcc: string[] = [];
+	public insertCode: {
+		key: string,
+		value: string,
+	}[] = [];
 	
-	setTo(email: string | string[]): BEReturnType {
-		if (Array.isArray(email)) {
-			email = email.join(',');
-		}
+	setTo(email: string, insertCode?: {[key: string]: string}): BEReturnType {
 		this.to = email;
+		if (insertCode) {
+			for (const key in insertCode){
+				this.insertCode?.push({
+					key: `__${key}__`,
+					value: insertCode[key],
+				})
+			}
+		}
 		return this;
 	}
 
@@ -25,17 +34,24 @@ export default class Transaction extends Base {
 	}
 
 	params(): RequestParamsTransaction {
-		return {
+		const params: RequestParamsTransaction =  {
 			from: {
 				email: this.fromEmail,
 				name: this.fromName
 			},
 			to: this.to,
+			insert_code: this.insertCode,
 			subject: this.subject,
 			encode: this.encode,
 			text_part: this.text_part,
 			html_part: this.html_part,
 		};
+		if (this.unsubscribe_email || this.unsubscribe_url) {
+			params.list_unsubscribe = {};
+			if (this.unsubscribe_email) params.list_unsubscribe.mailto = `mailto:${this.unsubscribe_email}`;
+			if (this.unsubscribe_url) params.list_unsubscribe.url = this.unsubscribe_url;
+		}
+		return params;
 	}
 
 	send(url?: string, requestParams?: RequestParams): boolean {

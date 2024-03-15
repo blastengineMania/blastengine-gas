@@ -116,7 +116,7 @@ export default class Bulk extends Base {
 	}
 	
 	saveParams(): RequestParamsBulkBegin {
-		return {
+		const params: RequestParamsBulkBegin = {
 			from: {
 				email: this.fromEmail,
 				name: this.fromName
@@ -126,10 +126,16 @@ export default class Bulk extends Base {
 			text_part: this.text_part,
 			html_part: this.html_part,
 		};
+		if (this.unsubscribe_email || this.unsubscribe_url) {
+			params.list_unsubscribe = {};
+			if (this.unsubscribe_email) params.list_unsubscribe.mailto = `mailto:${this.unsubscribe_email}`;
+			if (this.unsubscribe_url) params.list_unsubscribe.url = this.unsubscribe_url;
+		}
+		return params;
 	}
 
 	updateParams(): RequestParamsBulkUpdate {
-		return {
+		const params: RequestParamsBulkUpdate = {
 			from: {
 				email: this.fromEmail,
 				name: this.fromName
@@ -139,6 +145,12 @@ export default class Bulk extends Base {
 			text_part: this.text_part,
 			html_part: this.html_part,
 		};
+		if (this.unsubscribe_email || this.unsubscribe_url) {
+			params.list_unsubscribe = {};
+			if (this.unsubscribe_email) params.list_unsubscribe.mailto = `mailto:${this.unsubscribe_email}`;
+			if (this.unsubscribe_url) params.list_unsubscribe.url = this.unsubscribe_url;
+		}
+		return params;
 	}
 
 	commitParams(): RequestParamsBulkCommit {

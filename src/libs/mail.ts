@@ -14,6 +14,8 @@ export default class Mail extends Base {
 		from: undefined,
 		encode: 'UTF-8',
 		attachments: [],
+		unsubscribe_url: undefined,
+		unsubscribe_email: undefined,
 	};
 	
 	static fromJson(params: FindResponse): Transaction | Bulk {
@@ -33,8 +35,8 @@ export default class Mail extends Base {
 
 	addTo(email: string, insert_code?: {[key: string]: string}): Mail {
 		Object.keys(insert_code || {}).forEach(key => {
-			if (key.length > 20) throw new Error('Insert code key is limited to 20.');
-			if (key.length < 5) throw new Error('Insert code key is required at least 5.');
+			if (key.length > 16) throw new Error('Insert code key is limited to 16.');
+			if (key.length < 1) throw new Error('Insert code key is required at least 1.');
 		});
 		this.params.to.push({ email, insert_code });
 		return this;
@@ -70,6 +72,12 @@ export default class Mail extends Base {
 	setHtml(html: string): Mail {
 		if (!html || html.trim() === '') throw new Error('Html is required.');
 		this.params.html_part = html;
+		return this;
+	}
+
+	setUnsubscribe({ url, email }: { url?: string; email?: string; }) {
+		if (url) this.params.unsubscribe_url = url;
+		if (email) this.params.unsubscribe_email = email;
 		return this;
 	}
 
@@ -115,7 +123,8 @@ export default class Mail extends Base {
 			.setFrom(params.from!.email, params.from!.name)
 			.setSubject(params.subject)
 			.setText(params.text_part)
-			.setHtml(params.html_part);
+			.setHtml(params.html_part)
+			.setUnsubscribe({url: params.unsubscribe_url, email: params.unsubscribe_email});
 		if (params.attachments && params.attachments.length > 0) {
 			params.attachments.forEach(attachment => bulk.addAttachment(attachment!));
 		}
@@ -130,24 +139,29 @@ export default class Mail extends Base {
 	private sendTransaction(): boolean {
 		const transaction = new Transaction();
 		const { params } = this;
-		transaction
-			.setFrom(params.from!.email, this.params.from!.name)
-			.setTo(params.to[0].email, this.params.to[0].insert_code)
-			.setSubject(params.subject!)
-			.setEncode(params.encode)
-			.setText(params.text_part!)
-			.setHtml(params.html_part!);
-		if (params.cc && params.cc.length > 0) {
-			params.cc.forEach(cc => transaction.addCc(cc));
+		try {
+			transaction
+				.setFrom(params.from!.email, this.params.from!.name)
+				.setTo(params.to[0].email, this.params.to[0].insert_code)
+				.setSubject(params.subject!)
+				.setEncode(params.encode)
+				.setText(params.text_part!)
+				.setHtml(params.html_part!)
+				.setUnsubscribe({url: params.unsubscribe_url, email: params.unsubscribe_email});
+			if (params.cc && params.cc.length > 0) {
+				params.cc.forEach(cc => transaction.addCc(cc));
+			}
+			if (params.bcc && params.bcc.length > 0) {
+				params.bcc.forEach(bcc => transaction.addBcc(bcc));
+			}
+			if (params.attachments && params.attachments.length > 0) {
+				params.attachments.forEach(attachment => transaction.addAttachment(attachment!));
+			}
+			transaction.send();
+			this.delivery_id = transaction.delivery_id;
+		} catch (e) {
+			console.log(e);
 		}
-		if (params.bcc && params.bcc.length > 0) {
-			params.bcc.forEach(bcc => transaction.addBcc(bcc));
-		}
-		if (params.attachments && params.attachments.length > 0) {
-			params.attachments.forEach(attachment => transaction.addAttachment(attachment!));
-		}
-		transaction.send();
-		this.delivery_id = transaction.delivery_id;
 		return true;
 	}
 }

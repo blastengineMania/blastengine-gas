@@ -22,6 +22,10 @@ type RequestParamsBulkBegin = {
 	encode: string,
 	text_part: string,
 	html_part: string,
+	list_unsubscribe?: {
+		mailto?: string,
+		url?: string,
+	},
 };
 
 type InsertCode = {
@@ -43,6 +47,10 @@ type RequestParamsBulkUpdate = {
 	subject: string,
 	text_part: string,
 	html_part: string,
+	list_unsubscribe?: {
+		mailto?: string,
+		url?: string,
+	},
 };
 
 type RequestParamsBulkCommit = {
@@ -56,9 +64,14 @@ type RequestParamsTransaction = {
 	},
 	to: string,
 	subject: string,
+	insert_code?: InsertCode[],
 	encode: string,
 	text_part: string,
 	html_part: string,
+	list_unsubscribe?: {
+		mailto?: string,
+		url?: string,
+	},
 };
 
 type RequestParamsBulkImport = {
@@ -216,4 +229,6 @@ export type MailConfig = {
 		email: string,
 		name: string,
 	}
+	unsubscribe_url?: string,
+	unsubscribe_email?: string,
 };
